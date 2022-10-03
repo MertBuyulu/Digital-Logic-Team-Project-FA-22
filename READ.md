@@ -33,9 +33,9 @@
 
 - https://stackoverflow.com/questions/5360508/using-wire-or-reg-with-input-or-output-in-verilog
 
-##### What is the difference between $write vs $display oeprations?
+##### What is the difference between write vs display oeprations?
 
-- The only difference is that the $display task adds a new line character at the end of the output, while the $write task does not.
+- The only difference is that the display task adds a new line character at the end of the output, while the $write task does not.
 - So if you want to print something as new lines, use $display.
 - $write becomes useful if you want to print a set of values - all on a single line.
   - **Link**: https://www.quora.com/What-is-the-difference-between-write-and-display-in-SystemVerilog
@@ -50,12 +50,14 @@
 - Currently the compiler only supports variable indices for the final dimension of a packed array. This is an Icarus limitation, not a bug in your code.
 - https://github.com/steveicarus/iverilog/issues/276
 
-##### Extras
+##### Other Useful Information
 
 - Wires / registers contain one bit value unless declared as an array.
 - Generate block doesn't assign values to the wires
   - https://stackoverflow.com/questions/16949007/generate-block-is-not-assigning-any-values-to-wire
   - Conflicting assignment values will cause the output to be X and having an assignment that feedback on self without a way to break the loop will also always be X.
+- Declaring dynamic arrays is not permitted in Verilog.
+- Verilog arrays could only be accessed one element at a time.
 
 ##### High-level workflow of the program below
 
@@ -85,4 +87,4 @@
 
 ##### Questions
 
-- Is the assignment call for the usage of unsigned or signed numbers?
+- Is the assignment call for the usage of unsigned or signed numbers (integer)?
