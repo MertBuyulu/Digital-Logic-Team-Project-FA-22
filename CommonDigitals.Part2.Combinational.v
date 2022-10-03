@@ -26,22 +26,15 @@ output [15:0] Sum;
 
 wire [14:0] carryWires;
 
-FullAdder FA0(InputA[0], InputB[0], C, carryWires[0], Sum[0]);
-FullAdder FA1(InputA[1], InputB[1], carryWires[0], carryWires[1], Sum[1]);
-FullAdder FA2(InputA[2], InputB[2], carryWires[1], carryWires[2], Sum[2]);
-FullAdder FA3(InputA[3], InputB[3], carryWires[2], carryWires[3], Sum[3]);
-FullAdder FA4(InputA[4], InputB[4], carryWires[3], carryWires[4], Sum[4]);
-FullAdder FA5(InputA[5], InputB[5], carryWires[4], carryWires[5], Sum[5]);
-FullAdder FA6(InputA[6], InputB[6], carryWires[5],carryWires[6], Sum[6]);
-FullAdder FA7(InputA[7], InputB[7], carryWires[6], carryWires[7], Sum[7]);
-FullAdder FA8(InputA[8], InputB[8], carryWires[7], carryWires[8], Sum[8]);
-FullAdder FA9(InputA[9], InputB[9], carryWires[8], carryWires[9], Sum[9]);
-FullAdder FA10(InputA[10], InputB[10], carryWires[9], carryWires[10], Sum[10]);
-FullAdder FA11(InputA[11], InputB[11], carryWires[10], carryWires[11], Sum[11]);
-FullAdder FA12(InputA[12], InputB[12], carryWires[11], carryWires[12], Sum[12]);
-FullAdder FA13(InputA[13], InputB[13], carryWires[12], carryWires[13], Sum[13]);
-FullAdder FA14(InputA[14], InputB[14], carryWires[13], carryWires[14], Sum[14]);
-FullAdder FA15(InputA[15], InputB[15], carryWires[14], Carry, Sum[15]);
+generate
+    for(genvar i = 0; i < 16; i = i + 1) begin
+        case(i)
+            0: FullAdder FA0(InputA[i], InputB[i], C, carryWires[i], Sum[i]);
+           15: FullAdder FA0(InputA[i], InputB[i], carryWires[i-1], Carry, Sum[i]);
+           default: FullAdder FA0(InputA[i], InputB[i], carryWires[i-1], carryWires[i], Sum[i]);
+        endcase
+    end
+endgenerate
 
 endmodule
 
@@ -94,85 +87,37 @@ reg [31:0] Result;
 reg [15:0][15:0] Augends;
 reg [15:0][15:0] Adends;
 
-wire [15:0] Sum0;
-wire [15:0] Sum1;
-wire [15:0] Sum2;
-wire [15:0] Sum3;
-wire [15:0] Sum4;
-wire [15:0] Sum5;
-wire [15:0] Sum6;
-wire [15:0] Sum7;
-wire [15:0] Sum8;
-wire [15:0] Sum9;
-wire [15:0] Sum10;
-wire [15:0] Sum11;
-wire [15:0] Sum12;
-wire [15:0] Sum13;
-wire [15:0] Sum14;
-wire [15:0] Sum15;
+// range [16*16-1:-0]
+wire[16*16-1:0] Sums;
 
 // Carry Interfaces: wires c0,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15
 wire [15:0] carryWires;
 
-SixteenBitFullAdder SFA0(Augends[0], Adends[0], 1'b0, carryWires[0], Sum0);
-SixteenBitFullAdder SFA1(Augends[1], Adends[1], 1'b0, carryWires[1], Sum1);
-SixteenBitFullAdder SFA2(Augends[2], Adends[2], 1'b0, carryWires[2], Sum2);
-SixteenBitFullAdder SFA3(Augends[3], Adends[3], 1'b0, carryWires[3], Sum3);
-SixteenBitFullAdder SFA4(Augends[4], Adends[4], 1'b0, carryWires[4], Sum4);
-SixteenBitFullAdder SFA5(Augends[5], Adends[5], 1'b0, carryWires[5], Sum5);
-SixteenBitFullAdder SFA6(Augends[6], Adends[6], 1'b0, carryWires[6], Sum6);
-SixteenBitFullAdder SFA7(Augends[7], Adends[7], 1'b0, carryWires[7], Sum7);
-SixteenBitFullAdder SFA8(Augends[8], Adends[8], 1'b0, carryWires[8], Sum8);
-SixteenBitFullAdder SFA9(Augends[9], Adends[9], 1'b0, carryWires[9], Sum9);
-SixteenBitFullAdder SFA10(Augends[10], Adends[10], 1'b0, carryWires[10], Sum10);
-SixteenBitFullAdder SFA11(Augends[11], Adends[11], 1'b0, carryWires[11], Sum11);
-SixteenBitFullAdder SFA12(Augends[12], Adends[12], 1'b0, carryWires[12], Sum12);
-SixteenBitFullAdder SFA13(Augends[13], Adends[13], 1'b0, carryWires[13], Sum13);
-SixteenBitFullAdder SFA14(Augends[14], Adends[14], 1'b0, carryWires[14], Sum14);
-SixteenBitFullAdder SFA15(Augends[15], Adends[15], 1'b0, carryWires[15], Sum15);
+generate
+    for(genvar i = 0; i < 16; i = i + 1) begin
+        SixteenBitFullAdder SFA(Augends[i], Adends[i], 1'b0, carryWires[i], Sums[16*i+15:16*i]);    
+    end
+endgenerate
 
 integer j;
 
 always@(*) begin
 
-    Augends[0] = {
-                    1'b0, InputA[0]&InputB[15], InputA[0]&InputB[14], InputA[0]&InputB[13], InputA[0]&InputB[12],
-                    InputA[0]&InputB[11], InputA[0]&InputB[10], InputA[0]&InputB[9], InputA[0]&InputB[8],
-                    InputA[0]&InputB[7], InputA[0]&InputB[6], InputA[0]&InputB[5], InputA[0]&InputB[4],
-                    InputA[0]&InputB[3], InputA[0]&InputB[2], InputA[0]&InputB[1]
-                };
-    
-    Augends[1] = {carryWires[0], Sum0[15:1]};
-    Augends[2] = {carryWires[1], Sum1[15:1]};
-    Augends[3] = {carryWires[2], Sum2[15:1]};
-    Augends[4] = {carryWires[3], Sum3[15:1]};
-    Augends[5] = {carryWires[4], Sum4[15:1]};
-    Augends[6] = {carryWires[5], Sum5[15:1]};
-    Augends[7] = {carryWires[6], Sum6[15:1]};
-    Augends[8] = {carryWires[7], Sum7[15:1]};
-    Augends[9] = {carryWires[8], Sum8[15:1]};
-    Augends[10] = {carryWires[9], Sum9[15:1]};
-    Augends[11] = {carryWires[10], Sum10[15:1]};
-    Augends[12] = {carryWires[11], Sum11[15:1]};
-    Augends[13] = {carryWires[12], Sum12[15:1]};
-    Augends[14] = {carryWires[13], Sum13[15:1]};
+    Augends[0]= { 1'b0, ({15{InputA[0]}}&InputB[15:1]) };
 
+    //Augends[1]...Augends[15] is initialized inside the for loop
     for(j = 0; j < 15; j = j + 1) begin
-        Adends[j] = {{16{InputA[j+1]}}&InputB};
+        Augends[j+1] = { carryWires[0], Sums[(16*j+1)+:15] };
+        Adends[j] = { {16{InputA[j+1]}}&InputB };
     end
-
 
     Result[0] = InputA[0]&InputB[0];
     Result[1+:15] = {
-                        Sum0[0], Sum1[0], Sum2[0], Sum3[0], Sum4[0], Sum5[0], Sum6[0],
-                        Sum7[0], Sum8[0], Sum9[0], Sum10[0], Sum11[0], Sum12[0], Sum13[0]
+                        Sums[208], Sums[192], Sums[176], Sums[160], Sums[144], Sums[128], Sums[112],
+                        Sums[96], Sums[80], Sums[64], Sums[48], Sums[32], Sums[16], Sums[0]
                     };
-    Result[15+:16] = Sum14;
+    Result[15+:16] = Sums[239:224];
     Result[31] = carryWires[14];
-
-    //$display("%16b, %16b", Augends[11], {1'b0,Sum10[15:1]});
-    //$display("%16b, %16b", Result[30:15], Sum14);
-    //$display("%32b", Result);
 
 end
 
@@ -381,7 +326,7 @@ module testbench();
     // stimulous
 
     initial begin // start stimulous thread
-
+    #2
         $display("|------------------------------------------+---------------------------------------|");
         $display("|               Inputs                     |               Outputs                 |");
         $display("|------------------------------------------+---------------------------------------|");
@@ -415,15 +360,15 @@ module testbench();
         $display("\n|------------------------------------------+---------------------------------------|");
 
         // Multiplication
-        InputA = 16'b000000000000010;
-        InputB = 16'b000000000000010;
+        InputA = 16'b00000011011101;
+        InputB = 16'b00000001110100;
         OpCode= 4'b0110;
         #10
 
         $write("|      %3d       |", InputA);
         $write("     %3d      |", InputB);
         $write("   %4b   |", OpCode);
-        $write("     %3d        |", Result);
+        $write("      %3d       |", Result);
         $write("        %2b          |", Error);
         $display("\n|------------------------------------------+---------------------------------------|");
 
