@@ -40,6 +40,10 @@
 - $write becomes useful if you want to print a set of values - all on a single line.
   - **Link**: https://www.quora.com/What-is-the-difference-between-write-and-display-in-SystemVerilog
 
+#### Control Flow of a Module in Verilog
+
+- https://stackoverflow.com/questions/67394965/can-someone-explain-the-control-flow-of-modules-in-system-verilog
+
 ##### What is genvar variable used for?
 
 - A genvar is a variable used in generate-for loop. It stores positive integer values.

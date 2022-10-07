@@ -38,14 +38,14 @@ endgenerate
 
 endmodule
 
-module SixteenBitAddSub(InputA, InputB, Mode, Result, Carry, Overflow);
+module SixteenBitAddSub(InputA, InputB, modeSUB, outputADDSUB, Carry, ADDerror);
 input [15:0] InputA;
 input [15:0] InputB;
-input Mode;
+input modeSUB;
 
 output Carry;
-output Overflow;
-output [31:0] Result;
+output ADDerror;
+output [31:0] outputADDSUB;
 
 // XOR Interfaces: wires b0,b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15
 wire [15:0] xorWires;
@@ -53,42 +53,42 @@ wire [15:0] xorWires;
 wire [16:0] carryWires;
 
 // Mode assigned to the initial carry [0/1]. Mode=0, Addition; Mode=1, Subtraction
-assign carryWires[0]= Mode;
+assign carryWires[0]= modeSUB;
 
 genvar i; 
 generate
     for(i = 0; i < 16; i = i + 1) begin
-        assign xorWires[i] = InputB[i] ^ Mode;
+        assign xorWires[i] = InputB[i] ^ modeSUB;
     end
 
     for(i = 0; i < 16; i = i + 1) begin
-        FullAdder FA(InputA[i], xorWires[i], carryWires[i], carryWires[i+1], Result[i]);
+        FullAdder FA(InputA[i], xorWires[i], carryWires[i], carryWires[i+1], outputADDSUB[i]);
     end
 
     for(i = 31; i > 15; i = i - 1) begin
-        assign Result[i] = Result[15];
+        assign outputADDSUB[i] = outputADDSUB[15];
     end
 endgenerate
 
 assign Carry = carryWires[16];
 // overflow occurs if the value of the left most 2 bits have different values 
-assign Overflow = carryWires[16]^carryWires[15];
+assign ADDerror = carryWires[16]^carryWires[15];
 
 endmodule
 
-module SixteenBitMultiplier(InputA, InputB, Result);
+module SixteenBitMultiplier(InputA, InputB, outputMUL);
 input [15:0] InputA;
 input [15:0] InputB;
-output [31:0] Result;
+output [31:0] outputMUL;
 
-reg [31:0] Result;
+reg [31:0] outputMUL;
 
 // Local Variables
 reg [15:0][15:0] Augends;
 reg [15:0][15:0] Adends;
 
-// range [16*16-1:-0]
-wire[16*16-1:0] Sums;
+// range [16*16-1:0]
+wire[16*16-1:0] Sums; 
 
 // Carry Interfaces: wires c0,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15
 wire [15:0] carryWires;
@@ -111,120 +111,120 @@ always@(*) begin
         Adends[j] = { {16{InputA[j+1]}}&InputB };
     end
 
-    Result[0] = InputA[0]&InputB[0];
-    Result[1+:15] = {
+    outputMUL[0] = InputA[0]&InputB[0];
+    outputMUL[1+:15] = {
                         Sums[208], Sums[192], Sums[176], Sums[160], Sums[144], Sums[128], Sums[112],
                         Sums[96], Sums[80], Sums[64], Sums[48], Sums[32], Sums[16], Sums[0]
                     };
-    Result[15+:16] = Sums[239:224];
-    Result[31] = carryWires[14];
+    outputMUL[15+:16] = Sums[239:224];
+    outputMUL[31] = carryWires[14];
 
 end
 
 endmodule
 
-module SixteenBitModulus(InputA,InputB,Result,Error);
+module SixteenBitModulus(InputA,InputB,outputMOD,MODerror);
 
 input [15:0] InputA;
 input [15:0] InputB;
-output [31:0] Result;
+output [31:0] outputMOD;
 
 wire [15:0] InputA;
 wire [15:0] InputB;
-reg [31:0] Result;
+reg [31:0] outputMOD;
 
-output Error;
-reg Error;
+output MODerror;
+reg MODerror;
 
 integer i;
 
 always @(InputA,InputB) begin
-    Result=InputA%InputB;
+    outputMOD=InputA%InputB;
 
     for(i = 16; i < 32; i = i+1) begin
-        Result[i] = Result[15];
+        outputMOD[i] = outputMOD[15];
     end
 
-    Error=(InputB == 16'b0000000000000000);
+    MODerror=(InputB == 16'b0000000000000000);
 
 end
 
 endmodule
 
-module SixteenBitDivision(InputA,InputB,Result,Error);
+module SixteenBitDivision(InputA,InputB,outputDIV,DIVerror);
 
 input [15:0] InputA;
 input [15:0] InputB;
-output [31:0] Result;
+output [31:0] outputDIV;
 
 wire [15:0] InputA;
 wire [15:0] InputB;
-reg [31:0] Result;
+reg [31:0] outputDIV;
 
-output Error;
-reg Error;
+output DIVerror;
+reg DIVerror;
 
 integer i;
 
 always @(InputA,InputB) begin
-    Result=InputA/InputB;
+    outputDIV=InputA/InputB;
 
     for(i = 16; i < 31; i = i+1) begin
-        Result[i]= Result[15];
+        outputDIV[i]= outputDIV[15];
     end
 
-    Error=(InputB == 16'b0000000000000000);
+    DIVerror=(InputB == 16'b0000000000000000);
 
 end
 
 endmodule
 
-module Mux16x1(channels, select, selected);
+module Mux16x1(channels, onehot, selected);
 input [15:0][31:0] channels; // 16 channels where each of the channels contain 32 bit number
-input [15:0] select;
+input [15:0] onehot;
 output[31:0] selected;
 
     // A x 1 = A or A x 0 = 0
-	assign selected =   ({32{select[15]}} & channels[15]) | 
-                        ({32{select[14]}} & channels[14]) |
-			            ({32{select[13]}} & channels[13]) |
-			            ({32{select[12]}} & channels[12]) |
-			            ({32{select[11]}} & channels[11]) |
-			            ({32{select[10]}} & channels[10]) |
-			            ({32{select[ 9]}} & channels[ 9]) | 
-			            ({32{select[ 8]}} & channels[ 8]) |
-			            ({32{select[ 7]}} & channels[ 7]) |
-			            ({32{select[ 6]}} & channels[ 6]) |
-			            ({32{select[ 5]}} & channels[ 5]) |  
-			            ({32{select[ 4]}} & channels[ 4]) |  
-			            ({32{select[ 3]}} & channels[ 3]) |  
-			            ({32{select[ 2]}} & channels[ 2]) |  
-                        ({32{select[ 1]}} & channels[ 1]) |  
-                        ({32{select[ 0]}} & channels[ 0]) ;
+	assign selected =   ({32{onehot[15]}} & channels[15]) | 
+                        ({32{onehot[14]}} & channels[14]) |
+			            ({32{onehot[13]}} & channels[13]) |
+			            ({32{onehot[12]}} & channels[12]) |
+			            ({32{onehot[11]}} & channels[11]) |
+			            ({32{onehot[10]}} & channels[10]) |
+			            ({32{onehot[ 9]}} & channels[ 9]) | 
+			            ({32{onehot[ 8]}} & channels[ 8]) |
+			            ({32{onehot[ 7]}} & channels[ 7]) |
+			            ({32{onehot[ 6]}} & channels[ 6]) |
+			            ({32{onehot[ 5]}} & channels[ 5]) |  
+			            ({32{onehot[ 4]}} & channels[ 4]) |  
+			            ({32{onehot[ 3]}} & channels[ 3]) |  
+			            ({32{onehot[ 2]}} & channels[ 2]) |  
+                        ({32{onehot[ 1]}} & channels[ 1]) |  
+                        ({32{onehot[ 0]}} & channels[ 0]) ;
 
 endmodule
 
-module Dec4x16(binary, onehot);
+module Dec4x16(Opcode, onehot);
 
-	input [3:0] binary; // opcode
-	output [15:0]onehot; // 16 bit hot select being fed into a 16:1 MUX
+	input [3:0] Opcode; // opcode
+	output [15:0] onehot; // 16 bit hot select being fed into a 16:1 MUX
 	
-	assign onehot[ 0]=~binary[3]&~binary[2]&~binary[1]&~binary[0];
-	assign onehot[ 1]=~binary[3]&~binary[2]&~binary[1]& binary[0];
-	assign onehot[ 2]=~binary[3]&~binary[2]& binary[1]&~binary[0];
-	assign onehot[ 3]=~binary[3]&~binary[2]& binary[1]& binary[0];
-	assign onehot[ 4]=~binary[3]& binary[2]&~binary[1]&~binary[0];
-	assign onehot[ 5]=~binary[3]& binary[2]&~binary[1]& binary[0];
-	assign onehot[ 6]=~binary[3]& binary[2]& binary[1]&~binary[0];
-	assign onehot[ 7]=~binary[3]& binary[2]& binary[1]& binary[0];
-	assign onehot[ 8]= binary[3]&~binary[2]&~binary[1]&~binary[0];
-	assign onehot[ 9]= binary[3]&~binary[2]&~binary[1]& binary[0];
-	assign onehot[10]= binary[3]&~binary[2]& binary[1]&~binary[0];
-	assign onehot[11]= binary[3]&~binary[2]& binary[1]& binary[0];
-	assign onehot[12]= binary[3]& binary[2]&~binary[1]&~binary[0];
-	assign onehot[13]= binary[3]& binary[2]&~binary[1]& binary[0];
-	assign onehot[14]= binary[3]& binary[2]& binary[1]&~binary[0];
-	assign onehot[15]= binary[3]& binary[2]& binary[1]& binary[0];
+	assign onehot[ 0]=~Opcode[3]&~Opcode[2]&~Opcode[1]&~Opcode[0];
+	assign onehot[ 1]=~Opcode[3]&~Opcode[2]&~Opcode[1]& Opcode[0];
+	assign onehot[ 2]=~Opcode[3]&~Opcode[2]& Opcode[1]&~Opcode[0];
+	assign onehot[ 3]=~Opcode[3]&~Opcode[2]& Opcode[1]& Opcode[0];
+	assign onehot[ 4]=~Opcode[3]& Opcode[2]&~Opcode[1]&~Opcode[0];
+	assign onehot[ 5]=~Opcode[3]& Opcode[2]&~Opcode[1]& Opcode[0];
+	assign onehot[ 6]=~Opcode[3]& Opcode[2]& Opcode[1]&~Opcode[0];
+	assign onehot[ 7]=~Opcode[3]& Opcode[2]& Opcode[1]& Opcode[0];
+	assign onehot[ 8]= Opcode[3]&~Opcode[2]&~Opcode[1]&~Opcode[0];
+	assign onehot[ 9]= Opcode[3]&~Opcode[2]&~Opcode[1]& Opcode[0];
+	assign onehot[10]= Opcode[3]&~Opcode[2]& Opcode[1]&~Opcode[0];
+	assign onehot[11]= Opcode[3]&~Opcode[2]& Opcode[1]& Opcode[0];
+	assign onehot[12]= Opcode[3]& Opcode[2]&~Opcode[1]&~Opcode[0];
+	assign onehot[13]= Opcode[3]& Opcode[2]&~Opcode[1]& Opcode[0];
+	assign onehot[14]= Opcode[3]& Opcode[2]& Opcode[1]&~Opcode[0];
+	assign onehot[15]= Opcode[3]& Opcode[2]& Opcode[1]& Opcode[0];
 
 endmodule
 
@@ -246,12 +246,12 @@ reg [31:0] Result;
 
 // Control
 wire [15:0][31:0] channels;
-wire [15:0] select;
+wire [15:0] onehot;
 wire [31:0] selected;
 wire [31:0] unknown;
 
-Dec4x16 decoder(OpCode, select);
-Mux16x1 multiplexer(channels, select, selected);
+Dec4x16 decoder(OpCode, onehot);
+Mux16x1 multiplexer(channels, onehot, selected);
 
 // Operations
 
