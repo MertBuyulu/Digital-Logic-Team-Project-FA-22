@@ -412,15 +412,15 @@ module testbench();
         $display("\n|------------------------------------------+---------------------------------------|");
 
         // Substraction with error
-        InputA = 16'b101100111011000;
-        InputB = 16'b1000010101001100;
+        InputA = 16'b1100000000000000;
+        InputB = 16'b0110000000000000;
         OpCode= 4'b0101; 
         #10
 
         $write("|     %5d      |", InputA);
         $write("    %5d     |", InputB);
         $write("   %4b   |", OpCode);
-        $write("    %3d    |", Result);
+        $write("      %3d       |", Result);
         $write("        %2b          |", Error);
         $display("\n|------------------------------------------+---------------------------------------|");
 
