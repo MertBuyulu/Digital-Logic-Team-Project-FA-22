@@ -83,12 +83,3 @@
 
 9. At this point, we have the desired output. Thus, we now go back in program's hierarchy to display the output.
    - (i.e. individual modules -> mux -> breadboard -> testbench -> display the result -> go to next test case -> repeat)
-
-##### Interface Names [Part 2]
-
-    XOR Interfaces: b0, ..... , b15 -> represented as an array of wires
-    Carry Interfaces: c1, ..... , c16 (c0 is depended on the mode) -> represented as an array of wires
-
-##### Questions
-
-- Is the assignment call for the usage of unsigned or signed numbers (integer)?
