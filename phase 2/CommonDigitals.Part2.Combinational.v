@@ -440,20 +440,20 @@ module testbench();
         // Division
         InputA = 16'b0111001100001010;
         InputB = 16'b0100000001000010;
-        OpCode= 4'b0111; 
+        OpCode= 4'b1000; // changed from opcode 0111
         #10
 
         $write("|     %5d      |", InputA);
         $write("    %5d     |", InputB);
         $write("   %4b   |", OpCode);
-        $write("      %3d         |", Result);
+        $write("      %3d       |", Result);
         $write("        %2b          |", Error);
         $display("\n|------------------------------------------+---------------------------------------|");
 
         // Modulus
         InputA = 16'b0111111010010000;
         InputB = 16'b0011111101001000;
-        OpCode= 4'b0111; 
+        OpCode= 4'b0111; // changed from opcode 0111
         #10
 
         $write("|     %5d      |", InputA);
