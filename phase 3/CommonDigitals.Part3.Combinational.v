@@ -292,7 +292,7 @@ reg [31:0] outputNOT;
 
 always@(*) begin
     outputNOT[15:0] = ~(InputB);
-    outputNOT[31:16] = 16'b1111111111111111;
+    outputNOT[31:16] = 16'b0000000000000000;
 end
 
 endmodule
@@ -519,9 +519,9 @@ module testbench();
                 10: $display("%16b  OR  %16b  =  %32b  , OR",InputA, bb32.FeedBack, bb32.selected);
                 11: $display("%16b XOR  %16b  =  %32b  , XOR",InputA, bb32.FeedBack, bb32.selected);
                 12: $display("%16b NAND %16b  =  %32b  , NAND",InputA, bb32.FeedBack, bb32.selected);
-                13: $display("%16b  NOR %16b  =  %32b  , NOR",InputA, bb32.FeedBack, bb32.selected);
+                13: $display("%16b NOR  %16b  =  %32b  , NOR",InputA, bb32.FeedBack, bb32.selected);
                 14: $display("%16b XNOR %16b  =  %32b  , XNOR",InputA, bb32.FeedBack, bb32.selected);
-                15: $display("%16b  NOT                  ==> %32b  , NOT", bb32.FeedBack, bb32.selected);
+                15: $display("%16b NOT                   ==> %32b  , NOT", bb32.FeedBack, bb32.selected);
 		 
 		    endcase
 		 
@@ -577,7 +577,7 @@ module testbench();
     OpCode=4'b1000; // MODULUS
     #10;
     InputA=16'b0000011001011011; // 1627
-    OpCode=4'b1011; // XNOR
+    OpCode=4'b1110; // XNOR
     #10;
 
 	$finish;
