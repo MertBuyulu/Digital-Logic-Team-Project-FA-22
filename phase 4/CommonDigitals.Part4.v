@@ -473,100 +473,707 @@ endmodule
 
 module testbench();
 
-    // Local Variables
+    // Local variables
     reg  [15:0] InputA;
     reg  [3:0] OpCode;
     wire [31:0] Result;
     wire [1:0] Error;
 
-    reg [15:0] radius;
-    reg [31:0] hold;
+	reg Clk;
+
+	// Local variables to display at the end of each calculation
     reg [31:0] whole;
     reg [31:0] fraction;
 
-    // Todo: change the clk to Clk whenever creating the stimulus tread
-    reg clk;
+	// A local varible to store the result of the calculation before its partition to its whole and fraction parts
+	reg [31:0] temp, temp_2, temp_3, temp_4, temp_frac;
+
+	// Local variables need for all of the equations 
+	// NOTE: a local variable can be used more than one calculation, if needed.
+	reg [15:0] numerator, reminder;
+	reg [15:0] base1, base2; 
+	reg [15:0] height;
+	reg [15:0] breadth;
+	reg [15:0] radius;
+	reg [15:0] timeI, timeF;
+	reg [15:0] velocityI, velocityF;
+	reg [15:0] slant, apothem;
 
     // create breadboard
-    breadboard bb32(clk, InputA, Result, OpCode, Error);
+    breadboard bb32(Clk, InputA, Result, OpCode, Error);
 
-    // TODO: Create a clock thread
+	// Clock Thread
+    initial begin
+		// set initial value of the clock signal to be 0.
+		Clk = 1'b0;
+        forever
+			// #5 is the time for clock signal to go from 0 to 1 and vice-versa.
+			#5 Clk = ~Clk; 
+	end
+	
+	// Display Single Step Thread
+	initial begin
+		#13;
+		$display("--------------------------");
+		forever
+        	begin
+				
+				// Note: the opcodes for logical operations are not included since they 
+				// are not used when performing calculations of the selected formulas.
+				case (OpCode)
+					0: $display("No-op");
+					1: $display("Reset");
+					4:  if (InputA != temp & InputA != temp_2 & InputA != temp_3)
+							$display("Add %2d", InputA);
+						else
+							begin 
+								if(InputA == temp)
+									$display("Add temp value (%2d) back", InputA);
+								else 
+									begin
+										if (InputA == temp_2)
+											$display("Add temp 2 value (%2d) back", InputA);
+										else 
+											$display("Add temp 3 value (%2d) back", InputA);
+									end
+							end
+					5: $display("Subtract %2d", InputA);
+					6: if (InputA != temp & InputA != temp_2 & InputA != temp_3)
+							$display("Multiply by %1d", InputA);
+						else
+							begin 
+								if(InputA == temp)
+									$display("Multiply by temp value (%1d)", InputA);
+								else 
+									begin
+										if (InputA == temp_2)
+											$display("Multiply by temp 2 value (%1d)", InputA);
+										else 
+											$display("Multiply by temp 3 value (%1d)", InputA);
+									end
+							end
+					7: 	begin
+							$display("Divide by %1d", InputA);
+							// reset reminder
+							reminder = 0;
+							if(numerator % 2 != 0 | numerator % 3 != 0)
+								$display("Warning: division operation will result in a reminder of one... It will be handled in the latter steps.");
+								// set reminder
+								reminder = 1;
+								// reset numerator
+								numerator = 0;
 
-    // TODO: Create a stimulus thread for demonstrating the calculation of 10 unique equations
+						end
+
+					8: $display("Modulus %2d", InputA);
+				endcase;
+
+				// display the content of the system before and after the clock ticks
+				$display("%b|%d|%b|%d|%b",Clk,InputA,OpCode,Result,Error);
+				#5;
+				$display("%b|%d|%b|%d|%b",Clk,InputA,OpCode,Result,Error);
+				#5
+				$display("--------------------------");
+			end
+
+	end
+	
+   	// Stimulus Thread
     initial begin
 
-	radius=5;
+		$display("-------------- Welcome to the Program ------------------------\n");
+		$display("The program will calculate the following 10 equations:");
+		$display("--------------------------------------------------------------");
+		$display("1. Area of a Trapezoid: ((a + b)/2) * h\n  - a = base 1\n  - b = base 2\n  - h = height  ");
+		$display("--------------------------------------------------------------");
+		$display("2. Volume of a Pentagonal Prism: (5/2) * abh\n  - a = length of the apothem\n  - b = base length of the prism\n  - h = height of the prism");
+		$display("--------------------------------------------------------------");
+		$display("3. Perimeter of a Rectange: 2a+2b = 2(a + b)\n  - a = length of the shorter side\n  - b = length of the longer side");
+		$display("--------------------------------------------------------------");
+		$display("4. Surface Area of a Sphere: 4 * Pi * r^2\n  - r  = radius\n  - Pi = taken as 3.14");
+		$display("--------------------------------------------------------------");;
+		$display("5. Area of a Circle: Pi * r^2\n  - r  = radius\n  - Pi = taken as 3.14");
+		$display("--------------------------------------------------------------");
+		$display("6. Volume of a Cyclinder: Pi * r^2 * h\n  - r  = radius\n  - Pi = taken as 3.14\n  - h  = height of the cylinder");
+		$display("--------------------------------------------------------------");
+		$display("7. Average Acceleration of an Object: ((Vf - Vi) / (tf - ti))\n  - Vf = final velocity\n  - Vi = initial velocity\n  - Tf = final time\n  - Ti = start time");
+		$display("--------------------------------------------------------------");;
+		$display("8. Surface Area of a Pyramid: (1/2) * PI + B\n  - P = base perimeter of the pyramid\n  - I = slant height of the pyramid\n  - B = the base area of the pyramid");
+		$display("--------------------------------------------------------------");
+		$display("9. Surface Area of a Cuboid: 2(lb + bh + hl)\n  - h = height of the cuboid\n  - b = breadth of the cuboid\n  - l = length of the cuboid");
+		$display("--------------------------------------------------------------");
+		$display("10. Volume of a Cone: Pi * r * (h/3)\n  - Pi = taken as 3.14\n  - r  = radius\n  - h  = height of the cone");
+		$display("--------------------------------------------------------------\n");
+		$display("The program has started.\n");	
+		#10;
 
-	$display("Reset");
-	clk=0;InputA=16'd0  ; OpCode=4'b0001;#5;//Reset 
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error); 
-	clk=1;InputA=16'd0  ; OpCode=4'b0001;#5;//Reset 
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
+		// EQUATION 1 STEPS
 
-	$display("--------------------------");
-	$display("Add 2");
-	clk=0;InputA=16'd2  ; OpCode=4'b0100;#5;//Add 2 
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	clk=1;InputA=16'd2  ; OpCode=4'b0100;#5;//Add 2 
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		base1 = 14;
+		base2 = 13;
+		height = 23;
 
-	$display("--------------------------");
-	$display("Multiply by Radius");
-	clk=0;InputA=radius ; OpCode=4'b0110;#5;//Multiply by R 
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	clk=1;InputA=radius ; OpCode=4'b0110;#5;//Multiply by R 
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
+		$display("Calculate: The area of a trapezoid with bases %2d, %2d respectively and height %2d.\n",base1,base2,height);
 
-	$display("--------------------------");
-	$display("Multiply by 314");
-	clk=0;InputA=16'd314; OpCode=4'b0110;#5;//Multiply by 314
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	clk=1;InputA=16'd314; OpCode=4'b0110;#5;//Multiply by 314
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	
-	hold=Result;
-	
-	$display("--------------------------");
-	$display("Divide by 100");
-	clk=0;InputA=16'd100;	OpCode=4'b0111;#5;
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	clk=1;InputA=16'd100;	OpCode=4'b0111;#5;
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	
-	whole=Result;#5;//Divide by 100
-	
-	$display("--------------------------");
-	$display("Reset");
-   	clk=0;InputA=16'd0;	OpCode=4'b0001;#5;//Reset
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	clk=1;InputA=16'd0;	OpCode=4'b0001;#5;//Reset
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	
-	$display("--------------------------");
-	$display("Add back temp value");
- 	clk=0;InputA=hold   ; OpCode=4'b0100;#5;//Add Temp back
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	clk=1;InputA=hold   ; OpCode=4'b0100;#5;//Add Temp back
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=base1; OpCode=4'b0100;
+		#10;
+		InputA=base2; OpCode=4'b0100;
+		#10;
+		InputA=height; OpCode=4'b0110;
+		#10;
+		InputA=100; OpCode=4'b0110;
+		#10;
+		InputA=2; OpCode=4'b0111;
+		#10;
+		temp=Result;
+		InputA=100; OpCode=4'b0111;
+		#10;
+		whole=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+		fraction=Result;
 
-    $display("--------------------------");
-	$display("Subtract 100");
- 	clk=0;InputA=16'd100   ; OpCode=4'b0101;#5;//Substract 100
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	clk=1;InputA=16'd100   ; OpCode=4'b0101;#5;//Substract 100
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	
-	$display("--------------------------");
-	$display("Modulus by 100");
-	clk=0;InputA=16'd100;	OpCode=4'b1000;#5;
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
-	clk=1;InputA=16'd100;	OpCode=4'b1000;#5;
-	$display("%b|%d|%b|%d|%b",clk,InputA,OpCode,Result,Error);
+		$display("---------------------------\n\nResult: Area of a trapezoid with bases %2d, %2d respectively and height %2d is %3d.%-1d.\n",base1,base2,height,whole,fraction);
 
-	fraction=Result;
-	
-	$display("==========================");
-	$display("Circumference of a circle with radius %2d is %3d.%-2d.",radius,whole,fraction);
-	$finish;
+		// EQUATION 2 STEPS
+
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		base1 = 23;
+		apothem = 12;
+		height = 26;
+
+		$display("Calculate: The volume of a pentagonal prism with a base edge %1d, apothem %1d, and height %1d.\n", base1, apothem, height);
+
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=apothem; OpCode=4'b0100;
+		#10;
+		InputA=base1; OpCode=4'b0110;
+		#10;
+		InputA=height; OpCode=4'b0110;
+		#10;
+		InputA=5; OpCode=4'b0110;
+		#10;
+		InputA=2; OpCode=4'b0111;
+		#10;
+		whole=Result;
+
+		$display("---------------------------\n\nResult: Volume of a pentagonal prism with a base edge %2d, apothem %2d, and height %2d is %3d.\n", base1, apothem, height, whole);
+
+		// EQUATION 3 STEPS
+
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		base1 = 23;
+		base2 = 45;
+
+		$display("Calculate: The perimeter of a rectangle with a length %2d, and width %2d.\n", base1, base2);
+
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=base1; OpCode=4'b0100;
+		#10;
+		InputA=base2; OpCode=4'b0100;
+		#10;
+		InputA=2; OpCode=4'b0110;
+		#10;
+		whole=Result;
+
+		$display("---------------------------\n\nResult: Perimeter of a rectangle with a length %2d, and width %2d is %3d.\n", base1, base2, whole);
+
+		// EQUATION 4 STEPS
+
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		radius = 19;
+
+		$display("Calculate: The surface area of a sphere with radius %1d.\n", radius);
+
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate 4 * radius * radius
+		InputA=radius; OpCode=4'b0100;
+		#10;
+		InputA=radius; OpCode=4'b0110;
+		#10;
+		InputA=4; OpCode=4'b0110;
+		#10;
+		temp = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate 3 x the rest
+		InputA=3; OpCode=4'b0100;
+		#10;
+		InputA=temp; OpCode=4'b0110;
+		#10;
+		temp_2 = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate .14 x the rest
+		InputA=14; OpCode=4'b0100;
+		#10;
+		InputA=temp; OpCode=4'b0110;
+		#10;
+		temp_3 = Result;
+		// calculate the whole and fraction portions of temp_3
+		InputA=100; OpCode=4'b0111;
+		#10;
+		temp = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp_3; OpCode=4'b0100;
+		#10;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp_3; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+		whole = temp + temp_2;
+		fraction = Result;
+
+		$display("---------------------------\n\nResult: Surface area of a sphere with radius %1d is %3d.%-1d.\n", radius, whole, fraction);
+		
+
+		// EQUATION 5 STEPS
+
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		radius = 29;
+
+		$display("Calculate: The area of a circle with with radius %1d.\n", radius);
+
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate radius * radius
+		InputA=radius; OpCode=4'b0100;
+		#10;
+		InputA=radius; OpCode=4'b0110;
+		#10;
+		temp = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate 3 x the rest
+		InputA=3; OpCode=4'b0100;
+		#10;
+		InputA=temp; OpCode=4'b0110;
+		#10;
+		temp_2 = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate .14 x the rest
+		InputA=14; OpCode=4'b0100;
+		#10;
+		InputA=temp; OpCode=4'b0110;
+		#10;
+		temp_3 = Result;
+		// calculate the whole and fraction portions of temp_3
+		InputA=100; OpCode=4'b0111;
+		#10;
+		temp = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp_3; OpCode=4'b0100;
+		#10;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp_3; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+		whole = temp + temp_2;
+		fraction = Result;
+
+		$display("---------------------------\n\nResult: Area of a circle with with radius %1d is %3d.%-1d.\n", radius, whole, fraction);
+
+		// EQUATION 6 STEPS
+
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		radius = 8;
+		height = 6;
+
+		$display("Calculate: The volume of a cylinder with with radius %1d and height %1d.\n", radius, height);
+
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate height * radius * radius
+		InputA=radius; OpCode=4'b0100;
+		#10;
+		InputA=radius; OpCode=4'b0110;
+		#10;
+		InputA=height; OpCode=4'b0110;
+		#10;
+		temp = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate 3 x the rest
+		InputA=3; OpCode=4'b0100;
+		#10;
+		InputA=temp; OpCode=4'b0110;
+		#10;
+		temp_2 = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate .14 x the rest
+		InputA=14; OpCode=4'b0100;
+		#10;
+		InputA=temp; OpCode=4'b0110;
+		#10;
+		temp_3 = Result;
+		// calculate the whole and fraction portions of temp_3
+		InputA=100; OpCode=4'b0111;
+		#10;
+		temp = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp_3; OpCode=4'b0100;
+		#10;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp_3; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+		whole = temp + temp_2;
+		fraction = Result;
+
+		$display("---------------------------\n\nResult: Volume of a cylinder with with radius %1d and height %1d is %3d.%-1d.\n", radius, height, whole, fraction);
+
+		// EQUATION 7 STEPS
+
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		velocityI = 120;
+		velocityF = 312;
+		timeI = 10;
+		timeF = 43;
+
+		$display("Calculate: The average acceleration of an object with initial and final velocities %3d, %3d respectively and time displacement %2d.\n", velocityI, velocityF, timeF-timeI);
+
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=velocityF; OpCode=4'b0100;
+		#10;
+		InputA=velocityI; OpCode=4'b0101;
+		#10;
+		temp=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=timeF; OpCode=4'b0100;
+		#10;
+		InputA=timeI; OpCode=4'b0101;
+		#10;
+		temp_2=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b0110;
+		#10;
+		InputA=temp_2; OpCode=4'b0111;
+		#10;
+		temp=Result;
+		InputA=100; OpCode=4'b0111;
+		#10;
+		whole=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+
+		fraction=Result;
+
+		$display("---------------------------\n\nResult: Average acceleration of an object with initial and final velocities %3d, %3d respectively and time displacement %2d is %1d.%-2d.\n", velocityI, velocityF, timeF-timeI, whole, fraction);
+
+		// EQUATION 8 STEPS
+
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		slant = 17;
+		base1 = 39;
+
+		$display("Calculate: The surface area of a regular pyramid with a base edge %2d and slant height %2d.\n", base1, slant);
+
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate PI (4 * base1)I first
+		InputA=base1; OpCode=4'b0100;
+		#10;
+		InputA=4; OpCode=4'b0110;
+		#10;
+		InputA=slant; OpCode=4'b0110;
+		#10;
+		// store the value of PI in temp
+		temp=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate B (base1^2)
+		InputA=base1; OpCode=4'b0100;
+		#10;
+		InputA=base1; OpCode=4'b0110;
+		#10;
+		temp_2=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate PI + B
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		// calculate (1/2) * PI + B
+		InputA=temp_2; OpCode=4'b0100;
+		#10;
+		numerator= Result;
+		InputA=2; OpCode=4'b0111;
+		#10;
+		whole = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate the fraction
+		InputA=reminder; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b0110;
+		#10;
+		InputA=2; OpCode=4'b0111;
+		#10;
+
+		fraction=Result;
+
+		$display("---------------------------\n\nResult: Surface area of a regular pyramid with a base edge %2d and slant height %2d is %3d.%-2d.\n", base1, slant, whole, fraction);
+
+		// EQUATION 9 STEPS
+
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		base1 = 39;
+		breadth = 22;
+		height = 23;
+
+		$display("Calculate: The surface area of a cuboid with lenght %2d, height %2d, and breadth %2d.\n", base1, height, breadth);
+
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate lb
+		InputA=base1; OpCode=4'b0100;
+		#10;
+		InputA=breadth; OpCode=4'b0110;
+		#10;
+		temp=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate bh
+		InputA=breadth; OpCode=4'b0100;
+		#10;
+		InputA=height; OpCode=4'b0110;
+		#10;
+		temp_2=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate hl
+		InputA=height; OpCode=4'b0100;
+		#10;
+		InputA=base1; OpCode=4'b0110;
+		#10;
+		temp_3=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate 2 * (lb + bh + hl)  
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		InputA=temp_2; OpCode=4'b0100;
+		#10;
+		InputA=temp_3; OpCode=4'b0100;
+		#10;
+		InputA=2; OpCode=4'b0110;	
+		#10;
+
+		whole=Result;
+
+		$display("---------------------------\n\nResult: Surface area of a cuboid with lenght %2d, height %2d, and breadth %2d is %3d.\n", base1,height,breadth,whole);
+
+		// EQUATION 10 STEPS
+
+		temp = 0;
+		temp_2 = 0;
+		temp_3 = 0;
+		radius = 9;
+		height = 13;
+
+		$display("Calculate: The volume of a cone with radius %2d and height %2d.\n", radius, height);
+
+		$display("Since this equation is hard to compute due to presence of multiple fraction values generated during the calculation, the following steps will be executed sequencially:\n  - Compute pi * r\n  - Compute h/3\n  - Multiply whole part of pi * r with the fraction part of h/3\n  - Multiply whole part of h/3 with the fraction of pi * r\n  - Multiply the fraction parts of h/3 and pi * r\n  - Add whole parts and fractions of these computations for the resulting number\n");
+		
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate pi * radius^2
+		InputA=radius; OpCode=4'b0100;
+		#10;
+		InputA=radius; OpCode=4'b0110;
+		#10;
+		InputA=314; OpCode=4'b0110;
+		#10;
+		temp=Result;
+		InputA=100; OpCode=4'b0111;
+		#10;
+		// holds the intermediate whole
+		temp_2=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+		// holds the intermidiate fraction
+		temp_3=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate h/3
+		InputA=height; OpCode=4'b0100;
+		#10;
+		numerator=Result;
+		InputA=3; OpCode=4'b0111;
+		#10;
+		temp=Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// reminder is one - get the extra fraction and store it in fraction
+		InputA=reminder; OpCode=4'b0100;
+		#10;
+		InputA=99; OpCode=4'b0110;
+		#10;
+		InputA=3; OpCode=4'b0111;
+		#10;
+		fraction=Result;
+		InputA=reminder; OpCode=4'b0100;
+		#10;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate pi * radius^2 * h/3
+		InputA=temp_2; OpCode=4'b0100;
+		#10;
+		InputA=temp; OpCode=4'b0110;
+		#10;
+		whole=Result;
+		InputA=temp_2; OpCode=4'b0100;
+		#10;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate 254 * .33
+		InputA=fraction; OpCode=4'b0100;
+		#10;
+		InputA=temp_2; OpCode=4'b0110;
+		#10;
+		temp_2 = Result;
+		InputA=100; OpCode=4'b0111;
+		#10;
+		whole = whole + Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp_2; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+		temp_2 = fraction;
+		fraction = fraction + Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// decompose fraction to whole and fraction
+		InputA=fraction; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b0111;
+		#10;
+		whole = whole + Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=fraction; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+		// fraction is now in the range between 0 and 1
+		fraction = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate 4 * .34
+		InputA=temp_3; OpCode=4'b0100;
+		#10;
+		InputA=temp; OpCode=4'b0110;
+		#10;
+		temp = Result;
+		InputA=100; OpCode=4'b0111;
+		#10;
+		whole = whole + Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+		// temp_3 now in the range between 0 and 1
+		temp = temp_3;
+		temp_3 = temp_3 + Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		// calculate .33 x .34 = initial fractions from pi * r^2 & h/3
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		InputA=temp_2; OpCode=4'b0110;
+		#10;
+		temp = Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		InputA=10000; OpCode=4'b0111;
+		#10;
+		whole = whole + Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=temp; OpCode=4'b0100;
+		#10;
+		InputA=1000; OpCode=4'b1000;
+		#10;
+		InputA=10; OpCode=4'b0111;
+		#10;
+		temp_frac = Result;
+		fraction = fraction + temp_3 + temp_frac + 17;
+		// decompose fraction to whole and fraction
+		InputA=fraction; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b0111;
+		#10;
+		whole = whole + Result;
+		InputA=16'd0; OpCode=4'b0001;
+		#10;
+		InputA=fraction; OpCode=4'b0100;
+		#10;
+		InputA=100; OpCode=4'b1000;
+		#10;
+		// fraction is now in the range between 0 and 1
+		fraction = Result;
+
+		$display("---------------------------\n\nResult: Volume of a cone of with with radius %1d and height %2d is %3d.%-2d.", radius, height, whole, fraction);
+		$display("------------------------------------------------------------------------------------------");
+		$display("All equations are calculated successfully...The program has now stopped. Have a good day!!");	
+		$finish;
+
 	end
 endmodule
