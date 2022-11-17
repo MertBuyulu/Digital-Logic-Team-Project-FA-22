@@ -588,23 +588,29 @@ module testbench();
 		$display("--------------------------------------------------------------");
 		$display("2. Volume of a Pentagonal Prism: (5/2) * abh\n  - a = length of the apothem\n  - b = base length of the prism\n  - h = height of the prism");
 		$display("--------------------------------------------------------------");
-		$display("3. Perimeter of a Rectange: 2a+2b = 2(a + b)\n  - a = length of the shorter side\n  - b = length of the longer side");
+		$display("3. Perimeter of a Rectangle: 2a+2b = 2(a + b)\n  - a = length of the shorter side\n  - b = length of the longer side");
 		$display("--------------------------------------------------------------");
 		$display("4. Surface Area of a Sphere: 4 * Pi * r^2\n  - r  = radius\n  - Pi = taken as 3.14");
 		$display("--------------------------------------------------------------");;
 		$display("5. Area of a Circle: Pi * r^2\n  - r  = radius\n  - Pi = taken as 3.14");
 		$display("--------------------------------------------------------------");
-		$display("6. Volume of a Cyclinder: Pi * r^2 * h\n  - r  = radius\n  - Pi = taken as 3.14\n  - h  = height of the cylinder");
+		$display("6. Volume of a Cylinder: Pi * r^2 * h\n  - r  = radius\n  - Pi = taken as 3.14\n  - h  = height of the cylinder");
 		$display("--------------------------------------------------------------");
-		$display("7. Average Acceleration of an Object: ((Vf - Vi) / (tf - ti))\n  - Vf = final velocity\n  - Vi = initial velocity\n  - Tf = final time\n  - Ti = start time");
+		$display("7. Average Acceleration of an Object: ((Vf - Vi) / (Tf - Ti))\n  - Vf = final velocity\n  - Vi = initial velocity\n  - Tf = final time\n  - Ti = start time");
 		$display("--------------------------------------------------------------");;
-		$display("8. Surface Area of a Pyramid: (1/2) * PI + B\n  - P = base perimeter of the pyramid\n  - I = slant height of the pyramid\n  - B = the base area of the pyramid");
+		$display("8. Surface Area of a Regular Pyramid: (1/2) * PI + B\n  - P = base perimeter of the pyramid\n  - I = slant height of the pyramid\n  - B = the base area of the pyramid");
 		$display("--------------------------------------------------------------");
 		$display("9. Surface Area of a Cuboid: 2(lb + bh + hl)\n  - h = height of the cuboid\n  - b = breadth of the cuboid\n  - l = length of the cuboid");
 		$display("--------------------------------------------------------------");
 		$display("10. Volume of a Cone: Pi * r * (h/3)\n  - Pi = taken as 3.14\n  - r  = radius\n  - h  = height of the cone");
 		$display("--------------------------------------------------------------\n");
 		$display("The program has started.\n");	
+		$display("Each calculation will contain multiple steps in the following format:\n");;	
+		$display("-----------------------------------------------------");
+		$display("Current Operation | Current Input?");
+		$display("Clk (L)| Current Input | OpCode | Result | Error Code");
+		$display("Clk (H)| Current Input | OpCode | Result | Error Code");
+		$display("-----------------------------------------------------\n");
 		#10;
 
 		// EQUATION 1 STEPS
@@ -679,7 +685,7 @@ module testbench();
 		base1 = 23;
 		base2 = 45;
 
-		$display("Calculate: The perimeter of a rectangle with a length %2d, and width %2d.\n", base1, base2);
+		$display("Calculate: The perimeter of a rectangle with a lenght %2d, and width %2d.\n", base1, base2);
 
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
@@ -691,7 +697,7 @@ module testbench();
 		#10;
 		whole=Result;
 
-		$display("---------------------------\n\nResult: Perimeter of a rectangle with a length %2d, and width %2d is %3d.\n", base1, base2, whole);
+		$display("---------------------------\n\nResult: Perimeter of a rectangle with a lenght %2d, and width %2d is %3d.\n", base1, base2, whole);
 
 		// EQUATION 4 STEPS
 
@@ -755,7 +761,7 @@ module testbench();
 		temp_3 = 0;
 		radius = 29;
 
-		$display("Calculate: The area of a circle with with radius %1d.\n", radius);
+		$display("Calculate: The area of a circle with radius %1d.\n", radius);
 
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
@@ -798,7 +804,7 @@ module testbench();
 		whole = temp + temp_2;
 		fraction = Result;
 
-		$display("---------------------------\n\nResult: Area of a circle with with radius %1d is %3d.%-1d.\n", radius, whole, fraction);
+		$display("---------------------------\n\nResult: Area of a circle with radius %1d is %3d.%-1d.\n", radius, whole, fraction);
 
 		// EQUATION 6 STEPS
 
@@ -808,7 +814,7 @@ module testbench();
 		radius = 8;
 		height = 6;
 
-		$display("Calculate: The volume of a cylinder with with radius %1d and height %1d.\n", radius, height);
+		$display("Calculate: The volume of a cylinder with radius %1d and height %1d.\n", radius, height);
 
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
@@ -853,7 +859,7 @@ module testbench();
 		whole = temp + temp_2;
 		fraction = Result;
 
-		$display("---------------------------\n\nResult: Volume of a cylinder with with radius %1d and height %1d is %3d.%-1d.\n", radius, height, whole, fraction);
+		$display("---------------------------\n\nResult: Volume of a cylinder with radius %1d and height %1d is %3d.%-1d.\n", radius, height, whole, fraction);
 
 		// EQUATION 7 STEPS
 
@@ -968,7 +974,7 @@ module testbench();
 		breadth = 22;
 		height = 23;
 
-		$display("Calculate: The surface area of a cuboid with lenght %2d, height %2d, and breadth %2d.\n", base1, height, breadth);
+		$display("Calculate: The surface area of a cuboid with length %2d, height %2d, and breadth %2d.\n", base1, height, breadth);
 
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
@@ -1008,7 +1014,7 @@ module testbench();
 
 		whole=Result;
 
-		$display("---------------------------\n\nResult: Surface area of a cuboid with lenght %2d, height %2d, and breadth %2d is %3d.\n", base1,height,breadth,whole);
+		$display("---------------------------\n\nResult: Surface area of a cuboid with length %2d, height %2d, and breadth %2d is %3d.\n", base1,height,breadth,whole);
 
 		// EQUATION 10 STEPS
 
@@ -1170,7 +1176,7 @@ module testbench();
 		// fraction is now in the range between 0 and 1
 		fraction = Result;
 
-		$display("---------------------------\n\nResult: Volume of a cone of with with radius %1d and height %2d is %3d.%-2d.", radius, height, whole, fraction);
+		$display("---------------------------\n\nResult: Volume of a cone with radius %1d and height %2d is %3d.%-2d.", radius, height, whole, fraction);
 		$display("------------------------------------------------------------------------------------------");
 		$display("All equations are calculated successfully...The program has now stopped. Have a good day!!");	
 		$finish;
