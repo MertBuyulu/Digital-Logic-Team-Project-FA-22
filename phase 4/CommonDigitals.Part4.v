@@ -602,7 +602,7 @@ module testbench();
 		$display("--------------------------------------------------------------");
 		$display("9. Surface Area of a Cuboid: 2(lb + bh + hl)\n  - h = height of the cuboid\n  - b = breadth of the cuboid\n  - l = length of the cuboid");
 		$display("--------------------------------------------------------------");
-		$display("10. Volume of a Cone: Pi * r * (h/3)\n  - Pi = taken as 3.14\n  - r  = radius\n  - h  = height of the cone");
+		$display("10. Volume of a Cone: Pi * r^2 * (h/3)\n  - Pi = taken as 3.14\n  - r  = radius\n  - h  = height of the cone");
 		$display("--------------------------------------------------------------\n");
 		$display("The program has started.\n");	
 		$display("Each calculation will contain multiple steps in the following format:\n");;	
@@ -762,6 +762,7 @@ module testbench();
 		radius = 29;
 
 		$display("Calculate: The area of a circle with radius %1d.\n", radius);
+		//Note: 3.14 can be multiplied with the radius as 314 x radius/100 = x or 3 x radius = a and (14 x radius) / 100 = b and so a + b
 
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
@@ -846,10 +847,6 @@ module testbench();
 		InputA=100; OpCode=4'b0111;
 		#10;
 		temp = Result;
-		InputA=16'd0; OpCode=4'b0001;
-		#10;
-		InputA=temp_3; OpCode=4'b0100;
-		#10;
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
 		InputA=temp_3; OpCode=4'b0100;
@@ -1026,7 +1023,14 @@ module testbench();
 
 		$display("Calculate: The volume of a cone with radius %2d and height %2d.\n", radius, height);
 
-		$display("Since this equation is hard to compute due to presence of multiple fraction values generated during the calculation, the following steps will be executed sequentially:\n  - Compute pi * r\n  - Compute h/3\n  - Multiply whole part of pi * r with the fraction part of h/3\n  - Multiply whole part of h/3 with the fraction of pi * r\n  - Multiply the fraction parts of h/3 and pi * r\n  - Add whole parts and fractions of these computations for the resulting number\n");
+		$display("Since this equation is hard to compute due to presence of multiple fraction values generated during the calculation, the following steps will be executed sequentially:");  
+		$display(" - Compute pi * r => (3.14 x 9 = 254.34)");
+		$display(" - Compute h/3 => (13 / 3 = 4.33)");
+		$display(" - Multiply whole parts of pi * r and h/3 => (254 x 4)");
+		$display(" - Multiply whole part of pi * r with the fraction part of h/3 => (254 x .33)");
+		$display(" - Multiply whole part of h/3 with the fraction of pi * r => (4 x .34)");
+		$display(" - Multiply the fraction parts of h/3 and pi * r => (.34 x .33)");
+		$display(" - Add whole parts and fractions of these computations for the resulting number\n");
 		
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
@@ -1147,12 +1151,13 @@ module testbench();
 		#10;
 		InputA=temp; OpCode=4'b0100;
 		#10;
-		InputA=1000; OpCode=4'b1000;
+		// subtract 22 from 1122 since the number will be divided by 100 and we do not make precision to three decimals.
+		InputA=22; OpCode=4'b0101;
 		#10;
-		InputA=10; OpCode=4'b0111;
+		InputA=100; OpCode=4'b0111;
 		#10;
 		temp_frac = Result;
-		fraction = fraction + temp_3 + temp_frac + 17;
+		fraction = fraction + temp_3 + temp_frac;
 		// decompose fraction to whole and fraction
 		InputA=fraction; OpCode=4'b0100;
 		#10;
@@ -1161,14 +1166,17 @@ module testbench();
 		whole = whole + Result;
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
-		InputA=fraction; OpCode=4'b0100;
+		InputA= fraction + temp_frac; OpCode=4'b0100;
 		#10;
 		InputA=100; OpCode=4'b1000;
+		#10;
+		// .7 needs to be presented as .70, Thus, multiply 7 by 10 to get 70
+		InputA=10; OpCode=4'b0110;
 		#10;
 		// fraction is now in the range between 0 and 1
 		fraction = Result;
 
-		$display("---------------------------\n\nResult: Volume of a cone with radius %1d and height %2d is %3d.%-2d.", radius, height, whole, fraction);
+		$display("---------------------------\n\nResult: Volume of a cone with radius %1d and height %2d is %3d.%-1d.", radius, height, whole, fraction);
 		$display("------------------------------------------------------------------------------------------");
 		$display("All equations are calculated successfully...The program has now stopped. Have a good day!!");	
 		$finish;
