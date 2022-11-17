@@ -1069,8 +1069,6 @@ module testbench();
 		InputA=3; OpCode=4'b0111;
 		#10;
 		fraction=Result;
-		InputA=reminder; OpCode=4'b0100;
-		#10;
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
 		// calculate pi * radius^2 * h/3
@@ -1079,8 +1077,6 @@ module testbench();
 		InputA=temp; OpCode=4'b0110;
 		#10;
 		whole=Result;
-		InputA=temp_2; OpCode=4'b0100;
-		#10;
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
 		// calculate 254 * .33
@@ -1144,10 +1140,6 @@ module testbench();
 		InputA=temp_2; OpCode=4'b0110;
 		#10;
 		temp = Result;
-		InputA=16'd0; OpCode=4'b0001;
-		#10;
-		InputA=temp; OpCode=4'b0100;
-		#10;
 		InputA=10000; OpCode=4'b0111;
 		#10;
 		whole = whole + Result;
