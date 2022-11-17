@@ -685,7 +685,7 @@ module testbench();
 		base1 = 23;
 		base2 = 45;
 
-		$display("Calculate: The perimeter of a rectangle with a lenght %2d, and width %2d.\n", base1, base2);
+		$display("Calculate: The perimeter of a rectangle with a length %2d, and width %2d.\n", base1, base2);
 
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
@@ -697,7 +697,7 @@ module testbench();
 		#10;
 		whole=Result;
 
-		$display("---------------------------\n\nResult: Perimeter of a rectangle with a lenght %2d, and width %2d is %3d.\n", base1, base2, whole);
+		$display("---------------------------\n\nResult: Perimeter of a rectangle with a length %2d, and width %2d is %3d.\n", base1, base2, whole);
 
 		// EQUATION 4 STEPS
 
@@ -1026,7 +1026,7 @@ module testbench();
 
 		$display("Calculate: The volume of a cone with radius %2d and height %2d.\n", radius, height);
 
-		$display("Since this equation is hard to compute due to presence of multiple fraction values generated during the calculation, the following steps will be executed sequencially:\n  - Compute pi * r\n  - Compute h/3\n  - Multiply whole part of pi * r with the fraction part of h/3\n  - Multiply whole part of h/3 with the fraction of pi * r\n  - Multiply the fraction parts of h/3 and pi * r\n  - Add whole parts and fractions of these computations for the resulting number\n");
+		$display("Since this equation is hard to compute due to presence of multiple fraction values generated during the calculation, the following steps will be executed sequentially:\n  - Compute pi * r\n  - Compute h/3\n  - Multiply whole part of pi * r with the fraction part of h/3\n  - Multiply whole part of h/3 with the fraction of pi * r\n  - Multiply the fraction parts of h/3 and pi * r\n  - Add whole parts and fractions of these computations for the resulting number\n");
 		
 		InputA=16'd0; OpCode=4'b0001;
 		#10;
