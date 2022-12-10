@@ -1,4 +1,4 @@
-### Verilog Basics
+### Verilog Basics & Troubleshooting
 
 ##### Verilog Operators
 
