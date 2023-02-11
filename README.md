@@ -33,7 +33,7 @@
 
 - https://stackoverflow.com/questions/5360508/using-wire-or-reg-with-input-or-output-in-verilog
 
-##### What is the difference between write vs display oeprations?
+##### What is the difference between write vs display operations?
 
 - The only difference is that the display task adds a new line character at the end of the output, while the $write task does not.
 - So if you want to print something as new lines, use $display.
